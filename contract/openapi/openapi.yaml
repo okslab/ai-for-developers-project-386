@@ -1,0 +1,373 @@
+openapi: 3.0.0
+info:
+  title: Appointment Booking API
+  version: 1.0.0
+  description: Single-owner appointment booking API. Guests browse event types, pick a free slot within a 14-day booking window and create bookings; the fixed owner profile manages event types and views upcoming meetings. No authentication.
+tags:
+  - name: Guest
+  - name: Owner
+paths:
+  /bookings:
+    post:
+      operationId: Bookings_create
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/NotFoundError'
+                  - $ref: '#/components/schemas/ConflictError'
+      tags:
+        - Guest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreate'
+  /event-types:
+    get:
+      operationId: EventTypes_list
+      description: List all bookable event types shown on the guest booking-kinds page.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+      tags:
+        - Guest
+  /event-types/{eventTypeId}:
+    get:
+      operationId: EventTypes_get
+      description: Get a single event type by id.
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      tags:
+        - Guest
+  /event-types/{eventTypeId}/slots:
+    get:
+      operationId: Guest_listSlots
+      description: List free slots for an event type within the 14-day booking window (from/to optional, clamped to the window).
+      parameters:
+        - name: eventTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Slot'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+      tags:
+        - Guest
+  /owner/bookings:
+    get:
+      operationId: Owner_listUpcoming
+      description: List upcoming meetings across all event types (only bookings with endsAt >= now), enriched with event type name and description.
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookingWithEventType'
+      tags:
+        - Owner
+  /owner/event-types:
+    post:
+      operationId: OwnerEventTypes_create
+      description: Create a new event type.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventType'
+      tags:
+        - Owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventTypeCreate'
+    get:
+      operationId: OwnerEventTypes_list
+      description: List all event types for the admin panel.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+      tags:
+        - Owner
+components:
+  schemas:
+    Booking:
+      type: object
+      required:
+        - id
+        - eventTypeId
+        - startsAt
+        - endsAt
+        - guestName
+        - guestEmail
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique booking identifier (UUID).
+        eventTypeId:
+          type: string
+          description: Identifier of the event type being booked.
+        startsAt:
+          type: string
+          format: date-time
+          description: Start of the booking (ISO 8601, UTC).
+        endsAt:
+          type: string
+          format: date-time
+          description: 'End of the booking: startsAt + eventType.durationMinutes (derived by the server).'
+        guestName:
+          type: string
+          description: Guest provided name.
+        guestEmail:
+          type: string
+          description: Guest provided email address.
+        createdAt:
+          type: string
+          format: date-time
+          description: Moment the booking was created (ISO 8601, UTC).
+      description: A confirmed booking made by a guest.
+    BookingCreate:
+      type: object
+      required:
+        - eventTypeId
+        - startsAt
+        - guestName
+        - guestEmail
+      properties:
+        eventTypeId:
+          type: string
+          description: Identifier of the event type to book.
+        startsAt:
+          type: string
+          format: date-time
+          description: Desired slot start time (ISO 8601, UTC). Must fall inside the 14-day booking window.
+        guestName:
+          type: string
+          description: Guest provided name.
+        guestEmail:
+          type: string
+          description: Guest provided email address.
+      description: Payload for creating a booking. The server derives endsAt from the event type duration.
+    BookingWithEventType:
+      type: object
+      required:
+        - id
+        - eventTypeId
+        - startsAt
+        - endsAt
+        - guestName
+        - guestEmail
+        - createdAt
+        - eventTypeName
+        - eventTypeDescription
+      properties:
+        id:
+          type: string
+          description: Unique booking identifier (UUID).
+        eventTypeId:
+          type: string
+          description: Identifier of the event type being booked.
+        startsAt:
+          type: string
+          format: date-time
+          description: Start of the booking (ISO 8601, UTC).
+        endsAt:
+          type: string
+          format: date-time
+          description: 'End of the booking: startsAt + eventType.durationMinutes (derived by the server).'
+        guestName:
+          type: string
+          description: Guest provided name.
+        guestEmail:
+          type: string
+          description: Guest provided email address.
+        createdAt:
+          type: string
+          format: date-time
+          description: Moment the booking was created (ISO 8601, UTC).
+        eventTypeName:
+          type: string
+          description: Name of the booked event type.
+        eventTypeDescription:
+          type: string
+          description: Description of the booked event type.
+      description: A booking enriched with its event type details for the owner's upcoming-meetings view.
+    ConflictError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - CONFLICT
+          description: Machine-readable error code.
+        message:
+          type: string
+          description: Human-readable error message.
+      description: Returned when the requested time already overlaps an existing booking of any event type.
+    EventType:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - durationMinutes
+      properties:
+        id:
+          type: string
+          description: Unique event type identifier (UUID).
+        name:
+          type: string
+          description: Display name of the event type.
+        description:
+          type: string
+          description: Human-readable description shown to guests.
+        durationMinutes:
+          type: integer
+          format: int32
+          description: Duration of a meeting of this type, in minutes.
+      description: A bookable event type configured by the calendar owner.
+    EventTypeCreate:
+      type: object
+      required:
+        - name
+        - description
+        - durationMinutes
+      properties:
+        name:
+          type: string
+          description: Display name of the event type.
+        description:
+          type: string
+          description: Human-readable description shown to guests.
+        durationMinutes:
+          type: integer
+          format: int32
+          description: Duration of a meeting of this type, in minutes (positive value).
+      description: Payload for creating a new event type. The id is generated by the server.
+    NotFoundError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+          description: Machine-readable error code.
+        message:
+          type: string
+          description: Human-readable error message.
+      description: Returned when the referenced resource (e.g. an event type) does not exist.
+    Slot:
+      type: object
+      required:
+        - eventTypeId
+        - startsAt
+        - endsAt
+      properties:
+        eventTypeId:
+          type: string
+          description: Identifier of the event type this slot belongs to.
+        startsAt:
+          type: string
+          format: date-time
+          description: Start of the slot (ISO 8601, UTC).
+        endsAt:
+          type: string
+          format: date-time
+          description: 'End of the slot: startsAt + eventType.durationMinutes.'
+      description: A free time slot available for booking, anchored to one event type.
+servers:
+  - url: ''
+    description: Local development server; the backend host is configured at runtime.
+    variables: {}

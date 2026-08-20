@@ -1,0 +1,17 @@
+{
+  "name": "appointment-booking-contract",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TypeSpec contract for the Appointment Booking API (single source of truth shared by backend and frontend).",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsp compile .",
+    "check": "tsp compile . --warn-as-error"
+  },
+  "dependencies": {
+    "@typespec/compiler": "latest",
+    "@typespec/http": "latest",
+    "@typespec/openapi": "latest",
+    "@typespec/openapi3": "latest"
+  }
+}
