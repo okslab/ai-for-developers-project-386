@@ -31,7 +31,10 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: `npm run dev -- --port ${WEB_PORT} --strictPort`,
+      // Bind to an explicit IPv4 host: on GitHub-hosted runners `localhost`
+      // may resolve to ::1, so vite would listen on IPv6 while Playwright
+      // probes 127.0.0.1, causing a "Timed out waiting ... webServer" error.
+      command: `npm run dev -- --port ${WEB_PORT} --strictPort --host 127.0.0.1`,
       url: WEB_URL,
       cwd: "../frontend",
       env: { VITE_API_BASE_URL: API_URL },
