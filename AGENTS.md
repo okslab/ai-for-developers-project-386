@@ -22,9 +22,10 @@ TypeSpec. The contract is the single source of truth for both parts.
 
 - **Contract:** TypeSpec 1.x (Node ≥ 20). Build with `cd contract && npm install && npm run build`
   (regenerates `openapi/openapi.yaml`); `npm run check` treats warnings as errors.
-- **Backend (planned):** Python 3.12, FastAPI, SQLite.
-- **Frontend (planned):** React (Vite), TypeScript; client types generated from the OpenAPI spec.
-- The repo root has **no** package.json — `contract/` owns the only npm project.
+- **Backend:** Python 3.12+, FastAPI (in-memory store; see `backend/README.md`).
+- **Frontend:** React (Vite), TypeScript; client types generated from the OpenAPI spec.
+- **E2E:** Playwright (`e2e/`), drives the real frontend against the real backend.
+- The repo root has **no** package.json — `contract/`, `frontend/` and `e2e/` each own their own npm project.
 
 ## Hexlet CI — do not touch
 
@@ -42,9 +43,36 @@ TypeSpec. The contract is the single source of truth for both parts.
   not part of the project — don't treat its endpoints or entries as project config, and
   don't fold it into project commits.
 
+## E2E integration tests
+
+- User-scenario tests live in [`e2e/`](./e2e/) (Playwright) and cover the core booking
+  journey in a real browser: owner creates an event type, guest books a slot, owner sees
+  the upcoming meeting. Scenarios are in [`e2e/SCENARIOS.md`](./e2e/SCENARIOS.md).
+- Run locally with `cd e2e && npm install && npx playwright install chromium && npm test`
+  (needs backend deps installed — see `backend/README.md`; point the backend interpreter
+  at it with `E2E_PYTHON` if not `python3`).
+- `.github/workflows/e2e.yml` runs them on every push/PR against a freshly started
+  backend + frontend.
+
+## Commits & releases
+
+- **Every commit, including agent-authored ones, MUST follow Conventional Commits:**
+  - `feat:` — a new user-visible feature (bumps minor in a release).
+  - `fix:` — a bug fix (bumps patch in a release).
+  - `refactor:`, `chore:`, `docs:`, `test:`, `build:`, `ci:`, `perf:`, `style:` —
+    non-versioned maintenance; do not use these for user-facing changes.
+  - Scope is optional but encouraged, e.g. `feat(guest): add slot booking`.
+  - Breaking changes add `!` or a `BREAKING CHANGE:` footer and bump major.
+- **Releases are automated with release-please** (`.github/workflows/release-please.yml`).
+  It runs on `main`, reads the Conventional Commits history, and maintains a release-PR
+  with a generated `CHANGELOG.md` and a semver bump. Merging the release-PR publishes a
+  GitHub release and tags the commit. Never bump versions or edit `CHANGELOG.md` by hand —
+  let release-please do it.
+
 ## Workflow
 
-- Development is done on the `dev` branch; push to trigger Hexlet CI. Integration into
-  `main` happens later via a merge request — do not push directly to `main`.
+- Development is done on the `dev` branch; push to trigger Hexlet CI and the e2e CI.
+  Integration into `main` happens later via a merge request — do not push directly to
+  `main`. Pushes to `main` additionally trigger release-please.
 - When the API changes, update the TypeSpec contract first, regenerate
   `openapi/openapi.yaml` (`npm run build`), and keep `spec.md` in sync.

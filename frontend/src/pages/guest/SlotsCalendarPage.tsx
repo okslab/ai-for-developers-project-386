@@ -147,7 +147,10 @@ export function SlotsCalendarPage() {
                     <button
                       key={slot.startsAt}
                       type="button"
-                      onClick={() => setSelectedSlot(isSelected ? null : slot)}
+                      onClick={() => {
+                        setSelectedSlot(isSelected ? null : slot);
+                        setBookingError(null);
+                      }}
                       className={cn(
                         "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
                         isSelected
@@ -174,7 +177,6 @@ export function SlotsCalendarPage() {
                 {eventType?.description}
               </p>
             </div>
-            {bookingError && <ErrorAlert message={bookingError} />}
             <BookingForm
               key={selectedSlot.startsAt}
               slot={selectedSlot}
@@ -182,6 +184,11 @@ export function SlotsCalendarPage() {
               submitting={submitting}
               onSubmitRequest={handleBookingSubmit}
             />
+          </div>
+        )}
+        {bookingError && (
+          <div className="max-w-xl">
+            <ErrorAlert message={bookingError} />
           </div>
         )}
       </div>

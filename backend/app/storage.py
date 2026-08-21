@@ -2,7 +2,7 @@ import threading
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from .models import Booking, BookingWithEventType, EventType, Slot
+from .models import Booking, BookingCreate, BookingWithEventType, EventType, EventTypeCreate, Slot
 
 GRID_STEP_MINUTES = 30
 DEFAULT_WINDOW_DAYS = 14
