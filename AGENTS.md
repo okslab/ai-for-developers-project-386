@@ -44,6 +44,7 @@ TypeSpec. The contract is the single source of truth for both parts.
 
 ## Workflow
 
-- Work on `main`; push to trigger Hexlet CI.
+- Development is done on the `dev` branch; push to trigger Hexlet CI. Integration into
+  `main` happens later via a merge request — do not push directly to `main`.
 - When the API changes, update the TypeSpec contract first, regenerate
   `openapi/openapi.yaml` (`npm run build`), and keep `spec.md` in sync.
