@@ -1,0 +1,46 @@
+# Integration tests (E2E)
+
+Playwright end-to-end tests that drive the real frontend against the real
+backend in a browser. They cover the core booking journey end to end.
+
+Scenarios are described in [`SCENARIOS.md`](./SCENARIOS.md).
+
+## Prerequisites
+
+- Node.js ≥ 20 and npm.
+- Python 3.12+ with the backend dependencies installed (see
+  [`../backend/README.md`](../backend/README.md)).
+
+## Install
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+## Run
+
+`npm test` starts the backend and frontend automatically (via Playwright
+`webServer`) and runs the tests headless:
+
+```bash
+npm test
+```
+
+Useful flags:
+
+```bash
+npm test -- --headed        # watch the browser
+npm test -- --grep "guest"  # run only the guest scenarios
+```
+
+## Configuration
+
+- Backend API: `http://127.0.0.1:8000` (override with `E2E_API_URL` /
+  `E2E_API_PORT`).
+- Frontend: `http://127.0.0.1:5173` (override with `E2E_WEB_PORT`).
+- The frontend is pointed at the backend via `VITE_API_BASE_URL`, set by the
+  Playwright `webServer` entry, so no `.env` is needed.
+
+In CI the frontend and backend are started by Playwright inside the same job
+(see `.github/workflows/e2e.yml`).
