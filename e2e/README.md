@@ -7,14 +7,15 @@ Scenarios are described in [`SCENARIOS.md`](./SCENARIOS.md).
 
 ## Prerequisites
 
-- Node.js ≥ 20 and npm.
+- Node.js ≥ 24.18 and npm ≥ 10. CI and the production build use Node.js
+  24.18.0.
 - Python 3.12+ with the backend dependencies installed (see
   [`../backend/README.md`](../backend/README.md)).
 
 ## Install
 
 ```bash
-npm install
+npm ci
 npx playwright install chromium
 ```
 

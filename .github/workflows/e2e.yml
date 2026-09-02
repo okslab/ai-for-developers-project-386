@@ -14,7 +14,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24.18.0
           cache: npm
           cache-dependency-path: |
             e2e/package-lock.json
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12.11'
 
       - name: Install backend dependencies
         working-directory: backend
@@ -34,6 +34,21 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Smoke test Prism mock server
+        working-directory: frontend
+        run: |
+          npm run mock -- --host 127.0.0.1 --port 4010 > prism-mock.log 2>&1 &
+          prism_pid=$!
+          trap 'kill "${prism_pid}" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4010/api/event-types > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat prism-mock.log
+          exit 1
 
       - name: Install e2e dependencies
         working-directory: e2e

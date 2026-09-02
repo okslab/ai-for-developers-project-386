@@ -4,14 +4,18 @@
   "version": "1.0.0",
   "description": "TypeSpec contract for the Appointment Booking API (single source of truth shared by backend and frontend).",
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24.18.0",
+    "npm": ">=10"
+  },
   "scripts": {
     "build": "tsp compile .",
     "check": "tsp compile . --warn-as-error"
   },
   "dependencies": {
-    "@typespec/compiler": "latest",
-    "@typespec/http": "latest",
-    "@typespec/openapi": "latest",
-    "@typespec/openapi3": "latest"
+    "@typespec/compiler": "1.15.0",
+    "@typespec/http": "1.15.0",
+    "@typespec/openapi": "1.15.0",
+    "@typespec/openapi3": "1.15.0"
   }
 }

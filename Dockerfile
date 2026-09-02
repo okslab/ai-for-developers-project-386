@@ -1,16 +1,16 @@
 # Stage 1: build the frontend SPA
-FROM node:22 AS frontend
+FROM node:24.18.0 AS frontend
 
 WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
+COPY frontend/.npmrc frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend/ ./
 RUN VITE_API_BASE_URL=/ npm run build
 
 # Stage 2: runtime — nginx serves the SPA and proxies API paths to uvicorn
-FROM python:3.12-slim
+FROM python:3.12.11-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

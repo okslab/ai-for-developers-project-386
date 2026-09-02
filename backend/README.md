@@ -12,7 +12,7 @@ reset on restart (intentional for this step).
 ## Run
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn app.main:app --reload --port 8000
 ```

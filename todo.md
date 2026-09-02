@@ -99,11 +99,21 @@
 
 **Коммит:** `build(deps): pin reproducible backend and contract toolchains`
 
-- [ ] Закрепить TypeSpec-пакеты вместо `latest`.
-- [ ] Зафиксировать FastAPI, Pydantic, Uvicorn и транзитивные зависимости.
-- [ ] Согласовать версию Node с Prism либо закрепить совместимый Prism.
-- [ ] Добавить `engines` в npm-проекты.
-- [ ] Проверять `npm run mock` в CI.
+- **Статус:** завершён 2026-09-02 в ветке
+  `codex/reproducible-toolchains`.
+- [x] Закрепить TypeSpec-пакеты на версии 1.15.0 вместо `latest`.
+- [x] Зафиксировать FastAPI 0.141.1, Pydantic 2.13.5, Uvicorn 0.52.4 и
+  полный набор транзитивных runtime-зависимостей.
+- [x] Закрепить Node 24.18.0 и Python 3.12.11 в локальных toolchain-файлах,
+  CI и production Dockerfile.
+- [x] Закрепить Prism CLI 5.16.0 и согласовать `@types/node` с Node 24.
+- [x] Добавить `engines` во все npm-проекты и включить `engine-strict`.
+- [x] Проверять реальный запуск и HTTP-ответ `npm run mock` в CI.
+- [x] Выполнить TypeSpec check/build, frontend build и `pip check`.
+- [x] Выполнить локальный dev Playwright-набор: `5 passed (7.7s)`.
+- [x] Собрать production-образ без `EBADENGINE` и выполнить smoke-проверку.
+- [x] Выполнить Playwright против production-контейнера: `5 passed (5.2s)`.
+- [x] Подтвердить graceful stop production-контейнера с exit code `0`.
 
 ## Инкремент 4 — контрактный query-параметр `from`
 
@@ -151,5 +161,5 @@
 - [x] Dev Playwright.
 - [x] Cross-event-type Playwright.
 - [x] Production container на `PORT=8080`.
-- [ ] Prism mock smoke.
+- [x] Prism mock smoke.
 - [x] Graceful container stop.
