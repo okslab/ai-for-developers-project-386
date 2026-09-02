@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from ..models import BookingWithEventType, EventType, EventTypeCreate
 from ..storage import Store
@@ -20,5 +20,8 @@ def list_event_types(store: Store = Depends(get_store)):
 
 
 @router.get("/owner/bookings", response_model=list[BookingWithEventType])
-def list_upcoming(from_: datetime | None = None, store: Store = Depends(get_store)):
+def list_upcoming(
+    from_: datetime | None = Query(default=None, alias="from"),
+    store: Store = Depends(get_store),
+):
     return store.list_upcoming(from_)
