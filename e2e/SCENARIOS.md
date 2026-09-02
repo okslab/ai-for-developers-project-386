@@ -5,10 +5,11 @@ verify in a real browser, together with the backend and frontend running against
 the shared OpenAPI contract. Scenarios map to the functional requirements in
 [`../spec.md`](../spec.md).
 
-Each scenario runs against a fresh backend instance (the backend uses an
-in-memory store that is reset on restart), so tests are self-contained and
-deterministic. Where a scenario needs an event type, the test creates it through
-the owner UI first.
+The suite runs against one shared backend instance (the backend uses an in-memory
+store that is reset when the suite restarts). Tests run serially with one worker,
+create their own event types through the owner UI and select distinct intervals
+where needed so that state from an earlier scenario does not make a later one
+non-deterministic.
 
 ## Scenario S1 — Owner creates an event type (FR-1)
 
@@ -62,6 +63,22 @@ Steps:
 Result: overlapping bookings are rejected and the conflict is surfaced to the
 guest.
 
+## Scenario S5 — Overlap between different event types is rejected (FR-6)
+
+Steps:
+
+1. The owner creates a 60-minute event type and a separate 30-minute event type.
+2. Two browser pages load free slots for the two types before either page books.
+3. The pages select slots with different start times whose intervals overlap.
+4. The first page confirms its booking and sees the confirmation page.
+5. The second page tries to confirm its stale, overlapping slot.
+6. The server returns `409`, the UI displays the conflict message and refreshes
+   the second event type's availability.
+7. The refreshed slot list no longer contains intervals overlapping the booking.
+
+Result: the owner's occupancy is global across event types and is enforced both
+when creating a booking and when listing free slots.
+
 ## Mapping to functional requirements
 
 | Scenario | FR covered | API endpoints exercised via the UI |
@@ -70,6 +87,7 @@ guest.
 | S2 | FR-3, FR-4, FR-5 | `GET /event-types`, `GET /event-types/{id}`, `GET /event-types/{id}/slots`, `POST /bookings` |
 | S3 | FR-2 | `GET /owner/bookings` |
 | S4 | FR-6 | `POST /bookings` → `409` |
+| S5 | FR-6 | `GET /event-types/{id}/slots`, `POST /bookings` → `201`, `409` |
 
 ## Running locally
 
