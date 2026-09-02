@@ -134,11 +134,19 @@
 
 **Коммит:** `fix(api): validate aware datetimes and declare error responses`
 
-- [ ] Описать в TypeSpec явные 404, 409 и 422.
-- [ ] Согласовать единый структурированный формат validation errors.
-- [ ] Валидировать timezone у `startsAt`, `from` и `to` на входной границе.
-- [ ] Перегенерировать OpenAPI и frontend types.
-- [ ] Проверить, что timezone-less значения возвращают 422, а не 500.
+- **Статус:** завершён 2026-09-03 в ветке
+  `codex/aware-datetime-errors`.
+- [x] Описать в TypeSpec явные 404, 409 и 422.
+- [x] Согласовать единый структурированный формат validation errors.
+- [x] Валидировать timezone у `startsAt`, `from` и `to` на входной границе.
+- [x] Перегенерировать OpenAPI и frontend types.
+- [x] Проверить, что timezone-less значения возвращают 422, а не 500.
+- [x] Проверить явные error responses в FastAPI OpenAPI.
+- [x] Выполнить TypeSpec check/build и frontend codegen/build.
+- [x] Выполнить локальный dev Playwright-набор: `9 passed (6.3s)`.
+- [x] Собрать production-образ и выполнить smoke-проверку на `PORT=8080`.
+- [x] Выполнить Playwright против production-контейнера: `9 passed (4.4s)`.
+- [x] Подтвердить graceful stop production-контейнера с exit code `0`.
 
 ## Инкремент 6 — начало списка слотов
 

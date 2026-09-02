@@ -25,7 +25,7 @@ op listSlots(
   @path eventTypeId: string,
   @query from?: utcDateTime,
   @query to?: utcDateTime,
-): Slot[] | NotFoundError;
+): Slot[] | NotFoundError | ValidationError;
 
 @route("/bookings")
 @tag("Guest")
@@ -37,5 +37,5 @@ namespace Bookings {
   ): {
     @statusCode statusCode: 201;
     @body body: Booking;
-  } | NotFoundError | ConflictError;
+  } | NotFoundError | ConflictError | ValidationError;
 }

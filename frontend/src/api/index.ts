@@ -9,6 +9,7 @@ export type BookingWithEventType = components["schemas"]["BookingWithEventType"]
 export type Slot = components["schemas"]["Slot"];
 export type ConflictError = components["schemas"]["ConflictError"];
 export type NotFoundError = components["schemas"]["NotFoundError"];
+export type ValidationError = components["schemas"]["ValidationError"];
 
 export function listEventTypes() {
   return apiClient.GET("/api/event-types");

@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import AwareDatetime
 
-from ..models import Booking, BookingCreate, EventType, Slot
+from ..models import Booking, BookingCreate, ErrorBody, EventType, Slot
 from ..storage import Store, utcnow
 from .deps import get_store
 
@@ -22,7 +23,11 @@ def list_event_types(store: Store = Depends(get_store)):
     return store.list_event_types()
 
 
-@router.get("/event-types/{event_type_id}", response_model=EventType)
+@router.get(
+    "/event-types/{event_type_id}",
+    response_model=EventType,
+    responses={404: {"model": ErrorBody}},
+)
 def get_event_type(event_type_id: str, store: Store = Depends(get_store)):
     event_type = store.get_event_type(event_type_id)
     if event_type is None:
@@ -30,11 +35,15 @@ def get_event_type(event_type_id: str, store: Store = Depends(get_store)):
     return event_type
 
 
-@router.get("/event-types/{event_type_id}/slots", response_model=list[Slot])
+@router.get(
+    "/event-types/{event_type_id}/slots",
+    response_model=list[Slot],
+    responses={404: {"model": ErrorBody}, 422: {"model": ErrorBody}},
+)
 def list_slots(
     event_type_id: str,
-    from_: datetime | None = Query(default=None, alias="from"),
-    to: datetime | None = None,
+    from_: AwareDatetime | None = Query(default=None, alias="from"),
+    to: AwareDatetime | None = None,
     store: Store = Depends(get_store),
 ):
     event_type = store.get_event_type(event_type_id)
@@ -52,7 +61,16 @@ def list_slots(
     return store.list_slots(event_type, from_dt, to_dt)
 
 
-@router.post("/bookings", status_code=201, response_model=Booking)
+@router.post(
+    "/bookings",
+    status_code=201,
+    response_model=Booking,
+    responses={
+        404: {"model": ErrorBody},
+        409: {"model": ErrorBody},
+        422: {"model": ErrorBody},
+    },
+)
 def create_booking(body: BookingCreate, store: Store = Depends(get_store)):
     result = store.create_booking(body)
     if result is None:

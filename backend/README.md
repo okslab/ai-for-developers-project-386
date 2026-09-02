@@ -42,4 +42,7 @@ Point the frontend at the backend by setting
   enforced server-side at creation (`409` on overlap) and reflected in slot listings.
 - **Booking window:** slots generated on a 30-minute grid for 14 calendar days from
   server "now" (UTC); `POST /api/bookings` rejects start times outside the window (`422`).
+- **Timestamps:** client-supplied date-times must include a timezone designator or numeric
+  offset; timezone-less values are rejected with `422`.
 - **Duration** always comes from the event type; `endsAt` is derived server-side.
+- **Expected errors** use a top-level JSON object with string `code` and `message` fields.

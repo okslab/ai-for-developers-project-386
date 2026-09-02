@@ -98,6 +98,8 @@ model BookingWithEventType {
 @doc("Returned when the requested time already overlaps an existing booking of any event type.")
 @error
 model ConflictError {
+  @statusCode statusCode: 409;
+
   @doc("Machine-readable error code.")
   code: "CONFLICT";
 
@@ -108,9 +110,23 @@ model ConflictError {
 @doc("Returned when the referenced resource (e.g. an event type) does not exist.")
 @error
 model NotFoundError {
+  @statusCode statusCode: 404;
+
   @doc("Machine-readable error code.")
   code: "NOT_FOUND";
 
   @doc("Human-readable error message.")
+  message: string;
+}
+
+@doc("Returned when request data violates validation rules, including booking window constraints.")
+@error
+model ValidationError {
+  @statusCode statusCode: 422;
+
+  @doc("Machine-readable validation error code.")
+  code: "VALIDATION_ERROR" | "OUTSIDE_WINDOW";
+
+  @doc("Human-readable validation error message.")
   message: string;
 }
