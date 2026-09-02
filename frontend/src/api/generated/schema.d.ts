@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/bookings": {
+    "/api/bookings": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/event-types": {
+    "/api/event-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -37,7 +37,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/event-types/{eventTypeId}": {
+    "/api/event-types/{eventTypeId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -54,7 +54,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/event-types/{eventTypeId}/slots": {
+    "/api/event-types/{eventTypeId}/slots": {
         parameters: {
             query?: never;
             header?: never;
@@ -71,7 +71,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/owner/bookings": {
+    "/api/owner/bookings": {
         parameters: {
             query?: never;
             header?: never;
@@ -88,7 +88,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/owner/event-types": {
+    "/api/owner/event-types": {
         parameters: {
             query?: never;
             header?: never;

@@ -81,7 +81,7 @@ Given the owner provides a name, description and duration in minutes,
 the system creates an event type with a server-generated id.
 The created event type is available to guests on the booking-kinds page.
 
-API: `POST /owner/event-types`.
+API: `POST /api/owner/event-types`.
 
 ### FR-2 — Owner: view upcoming meetings
 
@@ -89,14 +89,14 @@ Given there are bookings of one or more event types, the owner sees a single lis
 upcoming meetings (only bookings whose `endsAt` is in the future), each enriched with its
 event type name and description.
 
-API: `GET /owner/bookings`.
+API: `GET /api/owner/bookings`.
 
 ### FR-3 — Guest: view booking kinds
 
 Given one or more event types exist, the guest sees a list with the event type name,
 description and duration.
 
-API: `GET /event-types`.
+API: `GET /api/event-types`.
 
 ### FR-4 — Guest: pick event type and browse free slots
 
@@ -104,7 +104,7 @@ Given the guest selects an event type, the system shows the calendar of free slo
 next 14 days (default booking window). Slot list is computed with the occupancy rule
 FR-6 applied across all event types.
 
-API: `GET /event-types/{eventTypeId}/slots` (optional `from`/`to` query params clamped to
+API: `GET /api/event-types/{eventTypeId}/slots` (optional `from`/`to` query params clamped to
 the 14-day window).
 
 ### FR-5 — Guest: create a booking
@@ -116,7 +116,7 @@ booking for the slot.
 - `404`: event type does not exist.
 - `409` (conflict): the slot time is already taken by any booking (intervals overlap).
 
-API: `POST /bookings`.
+API: `POST /api/bookings`.
 
 ### FR-6 — Occupancy rule
 
@@ -132,13 +132,13 @@ Free slots are formed for 14 calendar days starting from the current date
 
 | Requirement | Endpoint |
 |---|---|
-| FR-1 — Owner: create event type (id, name, description, durationMinutes) | `POST /owner/event-types` (payload `EventTypeCreate`) |
-| FR-2 — Owner: upcoming meetings across all event types | `GET /owner/bookings` (`endsAt >= now`; returns `BookingWithEventType[]`) |
-| FR-3 — Guest: booking-kinds page (name, description, duration) | `GET /event-types` |
-| FR-4 — Guest: calendar of free slots in the 14-day window | `GET /event-types/{eventTypeId}/slots` (default `from = now`, `to = now + 13 days`) |
-| FR-5 — Guest: create a booking for a selected slot | `POST /bookings` → `201`; errors `404`, `409`, `422` |
-| FR-6 — Occupancy rule (no overlaps across event types) | `POST /bookings` → `409` on overlap; slot listing excludes busy times |
-| FR-7 — Booking window (14 days from current date) | `GET /event-types/{eventTypeId}/slots` window; `POST /bookings` validates `startsAt` inside the window |
+| FR-1 — Owner: create event type (id, name, description, durationMinutes) | `POST /api/owner/event-types` (payload `EventTypeCreate`) |
+| FR-2 — Owner: upcoming meetings across all event types | `GET /api/owner/bookings` (`endsAt >= now`; returns `BookingWithEventType[]`) |
+| FR-3 — Guest: booking-kinds page (name, description, duration) | `GET /api/event-types` |
+| FR-4 — Guest: calendar of free slots in the 14-day window | `GET /api/event-types/{eventTypeId}/slots` (default `from = now`, `to = now + 13 days`) |
+| FR-5 — Guest: create a booking for a selected slot | `POST /api/bookings` → `201`; errors `404`, `409`, `422` |
+| FR-6 — Occupancy rule (no overlaps across event types) | `POST /api/bookings` → `409` on overlap; slot listing excludes busy times |
+| FR-7 — Booking window (14 days from current date) | `GET /api/event-types/{eventTypeId}/slots` window; `POST /api/bookings` validates `startsAt` inside the window |
 | No registration / no authentication | No auth headers, tokens or fields anywhere in the contract |
 
 Coverage: **all owner and guest scenarios map to endpoints; see table above.**

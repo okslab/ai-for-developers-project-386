@@ -33,4 +33,4 @@ jobs:
       - name: Verify deployment
         run: |
           curl -fsS --retry 5 --retry-delay 10 \
-            https://ai-for-developers-project-386-production-483e.up.railway.app/ -o /dev/null
+            https://ai-for-developers-project-386-production-483e.up.railway.app/api/openapi.json -o /dev/null

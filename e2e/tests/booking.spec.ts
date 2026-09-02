@@ -47,7 +47,7 @@ async function openEventTypeAndReadSlots(
   const slotsResponsePromise = page.waitForResponse(
     (response) =>
       response.request().method() === "GET" &&
-      /\/event-types\/[^/]+\/slots$/.test(new URL(response.url()).pathname),
+      /\/api\/event-types\/[^/]+\/slots$/.test(new URL(response.url()).pathname),
   );
   await page.getByText(eventTypeName, { exact: true }).click();
   await expect(page.getByRole("heading", { name: eventTypeName })).toBeVisible();
@@ -100,8 +100,9 @@ async function bookSlot(
 
 test("S1: owner creates an event type and it appears in the list", async ({ page }) => {
   await createEventType(page, "Team sync", "A short team sync.", 30);
-  await expect(page.getByText("Team sync", { exact: true })).toBeVisible();
-  await expect(page.getByText("30 min")).toBeVisible();
+  const eventTypeHeader = page.getByText("Team sync", { exact: true }).locator("..");
+  await expect(eventTypeHeader).toBeVisible();
+  await expect(eventTypeHeader.getByText("30 min", { exact: true })).toBeVisible();
 });
 
 test("S2: guest books a free slot and sees a confirmation", async ({ page }) => {
@@ -194,7 +195,7 @@ test("S5: overlapping slots from different event types conflict (409)", async ({
     const firstBookingResponsePromise = page.waitForResponse(
       (response) =>
         response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/bookings",
+        new URL(response.url()).pathname === "/api/bookings",
     );
     await page.getByRole("button", { name: "Confirm booking" }).click();
     expect((await firstBookingResponsePromise).status()).toBe(201);
@@ -203,12 +204,12 @@ test("S5: overlapping slots from different event types conflict (409)", async ({
     const conflictResponsePromise = secondPage.waitForResponse(
       (response) =>
         response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/bookings",
+        new URL(response.url()).pathname === "/api/bookings",
     );
     const refreshedSlotsResponsePromise = secondPage.waitForResponse(async (response) => {
       if (
         response.request().method() !== "GET" ||
-        !/\/event-types\/[^/]+\/slots$/.test(new URL(response.url()).pathname) ||
+        !/\/api\/event-types\/[^/]+\/slots$/.test(new URL(response.url()).pathname) ||
         !response.ok()
       ) {
         return false;
