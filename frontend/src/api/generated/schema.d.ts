@@ -241,6 +241,16 @@ export interface components {
              */
             endsAt: string;
         };
+        /** @description Returned when request data violates validation rules, including booking window constraints. */
+        ValidationError: {
+            /**
+             * @description Machine-readable validation error code.
+             * @enum {string}
+             */
+            code: "VALIDATION_ERROR" | "OUTSIDE_WINDOW";
+            /** @description Human-readable validation error message. */
+            message: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -272,13 +282,31 @@ export interface operations {
                     "application/json": components["schemas"]["Booking"];
                 };
             };
-            /** @description An unexpected error response. */
-            default: {
+            /** @description Returned when the referenced resource (e.g. an event type) does not exist. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotFoundError"] | components["schemas"]["ConflictError"];
+                    "application/json": components["schemas"]["NotFoundError"];
+                };
+            };
+            /** @description Returned when the requested time already overlaps an existing booking of any event type. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictError"];
+                };
+            };
+            /** @description Returned when request data violates validation rules, including booking window constraints. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationError"];
                 };
             };
         };
@@ -323,8 +351,8 @@ export interface operations {
                     "application/json": components["schemas"]["EventType"];
                 };
             };
-            /** @description An unexpected error response. */
-            default: {
+            /** @description Returned when the referenced resource (e.g. an event type) does not exist. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -357,13 +385,22 @@ export interface operations {
                     "application/json": components["schemas"]["Slot"][];
                 };
             };
-            /** @description An unexpected error response. */
-            default: {
+            /** @description Returned when the referenced resource (e.g. an event type) does not exist. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["NotFoundError"];
+                };
+            };
+            /** @description Returned when request data violates validation rules, including booking window constraints. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationError"];
                 };
             };
         };
@@ -386,6 +423,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BookingWithEventType"][];
+                };
+            };
+            /** @description Returned when request data violates validation rules, including booking window constraints. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationError"];
                 };
             };
         };
@@ -430,6 +476,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventType"];
+                };
+            };
+            /** @description Returned when request data violates validation rules, including booking window constraints. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationError"];
                 };
             };
         };

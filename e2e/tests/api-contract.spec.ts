@@ -12,18 +12,27 @@ interface BookingResponse {
   id: string;
 }
 
+interface ErrorResponse {
+  code: string;
+  message: string;
+}
+
 interface OpenApiParameter {
   name: string;
   in: string;
+}
+
+interface OpenApiOperation {
+  parameters?: OpenApiParameter[];
+  responses?: Record<string, unknown>;
 }
 
 interface OpenApiDocument {
   paths: Record<
     string,
     {
-      get?: {
-        parameters?: OpenApiParameter[];
-      };
+      get?: OpenApiOperation;
+      post?: OpenApiOperation;
     }
   >;
 }
@@ -105,4 +114,74 @@ test("FastAPI OpenAPI publishes from instead of from_", async ({ request }) => {
     expect(queryParameterNames).toContain("from");
     expect(queryParameterNames).not.toContain("from_");
   }
+});
+
+test("timezone-less datetime inputs return structured 422 responses", async ({ request }) => {
+  const createEventTypeResponse = await request.post(`${apiBaseUrl}/api/owner/event-types`, {
+    data: {
+      name: "Aware datetime regression",
+      description: "Rejects timestamps without timezone information.",
+      durationMinutes: 30,
+    },
+  });
+  expect(createEventTypeResponse.status()).toBe(201);
+  const eventType = (await createEventTypeResponse.json()) as EventTypeResponse;
+
+  const responses = [
+    await request.post(`${apiBaseUrl}/api/bookings`, {
+      data: {
+        eventTypeId: eventType.id,
+        startsAt: "2099-01-01T10:00:00",
+        guestName: "Timezone Guest",
+        guestEmail: "timezone@example.com",
+      },
+    }),
+    await request.get(`${apiBaseUrl}/api/event-types/${eventType.id}/slots`, {
+      params: { from: "2099-01-01T10:00:00" },
+    }),
+    await request.get(`${apiBaseUrl}/api/event-types/${eventType.id}/slots`, {
+      params: { to: "2099-01-01T10:00:00" },
+    }),
+    await request.get(`${apiBaseUrl}/api/owner/bookings`, {
+      params: { from: "2099-01-01T10:00:00" },
+    }),
+  ];
+
+  for (const response of responses) {
+    expect(response.status()).toBe(422);
+    const error = (await response.json()) as ErrorResponse;
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).toEqual(expect.any(String));
+    expect(error.message.length).toBeGreaterThan(0);
+    expect(Object.keys(error).sort()).toEqual(["code", "message"]);
+  }
+});
+
+test("FastAPI OpenAPI declares expected error status codes", async ({ request }) => {
+  const response = await request.get(`${apiBaseUrl}/api/openapi.json`);
+  expect(response.ok()).toBeTruthy();
+  const document = (await response.json()) as OpenApiDocument;
+
+  const eventTypeDetail = Object.entries(document.paths).find(([path]) =>
+    /^\/api\/event-types\/\{[^}]+\}$/.test(path),
+  )?.[1];
+  const slots = Object.entries(document.paths).find(([path]) =>
+    /^\/api\/event-types\/\{[^}]+\}\/slots$/.test(path),
+  )?.[1];
+
+  expect(Object.keys(eventTypeDetail?.get?.responses ?? {})).toEqual(
+    expect.arrayContaining(["200", "404"]),
+  );
+  expect(Object.keys(slots?.get?.responses ?? {})).toEqual(
+    expect.arrayContaining(["200", "404", "422"]),
+  );
+  expect(Object.keys(document.paths["/api/bookings"]?.post?.responses ?? {})).toEqual(
+    expect.arrayContaining(["201", "404", "409", "422"]),
+  );
+  expect(Object.keys(document.paths["/api/owner/event-types"]?.post?.responses ?? {})).toEqual(
+    expect.arrayContaining(["201", "422"]),
+  );
+  expect(Object.keys(document.paths["/api/owner/bookings"]?.get?.responses ?? {})).toEqual(
+    expect.arrayContaining(["200", "422"]),
+  );
 });

@@ -15,7 +15,7 @@ namespace OwnerEventTypes {
   ): {
     @statusCode statusCode: 201;
     @body body: EventType;
-  };
+  } | ValidationError;
 
   @doc("List all event types for the admin panel.")
   @get
@@ -26,4 +26,4 @@ namespace OwnerEventTypes {
 @tag("Owner")
 @doc("List upcoming meetings across all event types (only bookings with endsAt >= now), enriched with event type name and description.")
 @get
-op listUpcoming(@query from?: utcDateTime): BookingWithEventType[];
+op listUpcoming(@query from?: utcDateTime): BookingWithEventType[] | ValidationError;

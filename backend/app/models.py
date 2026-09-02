@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 
 class EventTypeCreate(BaseModel):
@@ -30,7 +30,7 @@ class BookingCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     eventTypeId: str
-    startsAt: datetime
+    startsAt: AwareDatetime
     guestName: str
     guestEmail: str
 

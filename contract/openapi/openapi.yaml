@@ -18,14 +18,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
-        default:
-          description: An unexpected error response.
+        '404':
+          description: Returned when the referenced resource (e.g. an event type) does not exist.
           content:
             application/json:
               schema:
-                anyOf:
-                  - $ref: '#/components/schemas/NotFoundError'
-                  - $ref: '#/components/schemas/ConflictError'
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: Returned when the requested time already overlaps an existing booking of any event type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '422':
+          description: Returned when request data violates validation rules, including booking window constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
       tags:
         - Guest
       requestBody:
@@ -67,8 +77,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventType'
-        default:
-          description: An unexpected error response.
+        '404':
+          description: Returned when the referenced resource (e.g. an event type) does not exist.
           content:
             application/json:
               schema:
@@ -108,12 +118,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Slot'
-        default:
-          description: An unexpected error response.
+        '404':
+          description: Returned when the referenced resource (e.g. an event type) does not exist.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFoundError'
+        '422':
+          description: Returned when request data violates validation rules, including booking window constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
       tags:
         - Guest
   /api/owner/bookings:
@@ -137,6 +153,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BookingWithEventType'
+        '422':
+          description: Returned when request data violates validation rules, including booking window constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
       tags:
         - Owner
   /api/owner/event-types:
@@ -151,6 +173,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventType'
+        '422':
+          description: Returned when request data violates validation rules, including booking window constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
       tags:
         - Owner
       requestBody:
@@ -367,6 +395,22 @@ components:
           format: date-time
           description: 'End of the slot: startsAt + eventType.durationMinutes.'
       description: A free time slot available for booking, anchored to one event type.
+    ValidationError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - OUTSIDE_WINDOW
+          description: Machine-readable validation error code.
+        message:
+          type: string
+          description: Human-readable validation error message.
+      description: Returned when request data violates validation rules, including booking window constraints.
 servers:
   - url: ''
     description: Local development server; the backend host is configured at runtime.

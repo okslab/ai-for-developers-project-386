@@ -45,6 +45,8 @@ The guest can:
 - A guest may only book a free slot that falls inside this window.
 - The booking window is computed server-side using the server timezone (default: UTC).
   All timestamps in the API are ISO 8601 in UTC (`utcDateTime`).
+- Every timestamp supplied by a client must include a timezone designator or numeric
+  offset. Timezone-less timestamps are rejected with a structured `422` response.
 
 ## Occupancy rule
 
@@ -115,6 +117,11 @@ booking for the slot.
 - Success: `201`, the created booking.
 - `404`: event type does not exist.
 - `409` (conflict): the slot time is already taken by any booking (intervals overlap).
+- `422`: request validation failed or the requested start is outside the booking window.
+
+All expected domain and validation errors use a top-level `{ code, message }` JSON object.
+The TypeSpec contract declares the status code and body for each expected `404`, `409`
+and `422`.
 
 API: `POST /api/bookings`.
 
