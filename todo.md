@@ -119,9 +119,16 @@
 
 **Коммит:** `fix(api): honor the contracted from query parameter`
 
-- [ ] Назначить Python-переменной `from_` внешний alias `from` в обоих endpoints.
-- [ ] Проверить фильтрацию slots и owner bookings.
-- [ ] Проверить, что FastAPI OpenAPI публикует `from`, а не `from_`.
+- **Статус:** завершён 2026-09-03 в ветке
+  `codex/contracted-from-query`.
+- [x] Назначить Python-переменной `from_` внешний alias `from` в обоих endpoints.
+- [x] Проверить фильтрацию slots и owner bookings.
+- [x] Проверить, что FastAPI OpenAPI публикует `from`, а не `from_`.
+- [x] Выполнить TypeSpec check/build и frontend production build.
+- [x] Выполнить локальный dev Playwright-набор: `7 passed (6.2s)`.
+- [x] Собрать production-образ и выполнить smoke-проверку на `PORT=8080`.
+- [x] Выполнить Playwright против production-контейнера: `7 passed (4.6s)`.
+- [x] Подтвердить graceful stop production-контейнера с exit code `0`.
 
 ## Инкремент 5 — aware datetime и явные ошибки
 

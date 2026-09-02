@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..models import Booking, BookingCreate, EventType, Slot
 from ..storage import Store, utcnow
@@ -33,7 +33,7 @@ def get_event_type(event_type_id: str, store: Store = Depends(get_store)):
 @router.get("/event-types/{event_type_id}/slots", response_model=list[Slot])
 def list_slots(
     event_type_id: str,
-    from_: datetime | None = None,
+    from_: datetime | None = Query(default=None, alias="from"),
     to: datetime | None = None,
     store: Store = Depends(get_store),
 ):
