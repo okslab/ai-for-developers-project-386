@@ -71,8 +71,13 @@ TypeSpec. The contract is the single source of truth for both parts.
 
 ## Workflow
 
-- Development is done on the `dev` branch; push to trigger Hexlet CI and the e2e CI.
-  Integration into `main` happens later via a merge request — do not push directly to
-  `main`. Pushes to `main` additionally trigger release-please.
+- Start every change from an up-to-date `main` and create a dedicated feature branch
+  (Codex-authored branches use the `codex/` prefix). The `dev` branch is no longer part
+  of the development or integration workflow and must not be used as a base or target.
+- Push the feature branch to trigger Hexlet CI and the e2e CI, then open a pull request
+  with `main` as its base. Never commit or push directly to `main`.
+- Keep the pull request title and commits in Conventional Commits format so the merge
+  into `main` is interpreted correctly by release-please. Pushes to `main` additionally
+  trigger release-please.
 - When the API changes, update the TypeSpec contract first, regenerate
   `openapi/openapi.yaml` (`npm run build`), and keep `spec.md` in sync.
