@@ -1,0 +1,83 @@
+name: production-container
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  production-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Build production image
+        run: docker build --tag appointment-booking:ci .
+
+      - name: Start production container on PORT=8080
+        run: |
+          docker run --detach \
+            --name appointment-booking-production \
+            --env PORT=8080 \
+            --publish 127.0.0.1:8080:8080 \
+            appointment-booking:ci
+
+      - name: Wait for API readiness
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/api/openapi.json > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs appointment-booking-production
+          exit 1
+
+      - name: Run production smoke checks
+        run: node e2e/scripts/production-smoke.mjs http://127.0.0.1:8080
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install Playwright browser
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright against production container
+        working-directory: e2e
+        env:
+          E2E_EXTERNAL_BASE_URL: http://127.0.0.1:8080
+        run: npm test
+
+      - name: Stop production container gracefully
+        if: always()
+        run: |
+          if docker inspect appointment-booking-production > /dev/null 2>&1; then
+            docker stop --time 10 appointment-booking-production
+            exit_code=$(docker inspect --format '{{.State.ExitCode}}' appointment-booking-production)
+            docker logs appointment-booking-production 2>&1 | tee production-container.log
+            test "${exit_code}" -eq 0
+            ! grep --quiet "address already in use" production-container.log
+            grep --quiet "Application shutdown complete" production-container.log
+          fi
+
+      - name: Remove production container
+        if: always()
+        run: docker rm --force appointment-booking-production 2>/dev/null || true
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-container-playwright-report
+          path: e2e/playwright-report
+          if-no-files-found: ignore

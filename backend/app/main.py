@@ -4,7 +4,16 @@ from fastapi.responses import JSONResponse
 
 from .routers import guest, owner
 
-app = FastAPI(title="Appointment Booking API", version="1.0.0")
+API_PREFIX = "/api"
+
+app = FastAPI(
+    title="Appointment Booking API",
+    version="1.0.0",
+    openapi_url=f"{API_PREFIX}/openapi.json",
+    docs_url=f"{API_PREFIX}/docs",
+    redoc_url=f"{API_PREFIX}/redoc",
+    swagger_ui_oauth2_redirect_url=f"{API_PREFIX}/docs/oauth2-redirect",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,5 +41,5 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     )
 
 
-app.include_router(guest.router)
-app.include_router(owner.router)
+app.include_router(guest.router, prefix=API_PREFIX)
+app.include_router(owner.router, prefix=API_PREFIX)

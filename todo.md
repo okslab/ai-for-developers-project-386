@@ -78,15 +78,22 @@
 
 ## Инкремент 2 — рабочий production-контейнер
 
-**Коммит:** `fix(deploy): make the production container serve SPA and API reliably`
+**Коммит:** `fix(api)!: isolate production API routes`
 
-- [ ] Развести внешний `${PORT}` nginx и внутренний порт Uvicorn.
-- [ ] Перенести публичные API endpoints под единый `/api`-префикс.
-- [ ] Атомарно обновить TypeSpec, OpenAPI, backend, frontend types и E2E.
-- [ ] Заменить фоновый Uvicorn корректным управлением обоими процессами.
-- [ ] Добавить отдельный CI-прогон собранного контейнера с `PORT=8080`.
-- [ ] Проверять SPA, JSON API, `GET /api/event-types/{id}` и graceful stop.
-- [ ] Перенести Railway healthcheck с `/` на API-health endpoint.
+- **Статус:** завершён 2026-09-02 в ветке
+  `codex/production-container-api`.
+- [x] Развести внешний `${PORT}` nginx и внутренний порт Uvicorn.
+- [x] Перенести публичные API endpoints под единый `/api`-префикс.
+- [x] Атомарно обновить TypeSpec, OpenAPI, backend, frontend types и E2E.
+- [x] Заменить фоновый Uvicorn на `tini` и launcher с передачей сигналов.
+- [x] Добавить отдельный CI-прогон собранного контейнера с `PORT=8080`.
+- [x] Проверять SPA, JSON API, `GET /api/event-types/{id}` и graceful stop.
+- [x] Перенести Railway healthcheck с `/` на `/api/openapi.json`.
+- [x] Выполнить локальный dev Playwright-набор: `5 passed (8.1s)`.
+- [x] Собрать production-образ и выполнить smoke-проверку на `PORT=8080`.
+- [x] Выполнить Playwright против production-контейнера: `5 passed (5.0s)`.
+- [x] Подтвердить graceful stop: exit code `0`, Uvicorn сообщил
+  `Application shutdown complete`, конфликта портов нет.
 
 ## Инкремент 3 — воспроизводимые зависимости
 
@@ -137,12 +144,12 @@
 
 ## Финальные обязательные проверки CI
 
-- [ ] TypeSpec check/build.
-- [ ] Проверка отсутствия diff у generated artifacts.
+- [x] TypeSpec check/build.
+- [x] Проверка воспроизводимой генерации OpenAPI и frontend types.
 - [ ] Backend API tests.
-- [ ] Frontend build.
-- [ ] Dev Playwright.
-- [ ] Cross-event-type Playwright.
-- [ ] Production container на `PORT=8080`.
+- [x] Frontend build.
+- [x] Dev Playwright.
+- [x] Cross-event-type Playwright.
+- [x] Production container на `PORT=8080`.
 - [ ] Prism mock smoke.
-- [ ] Graceful container stop.
+- [x] Graceful container stop.

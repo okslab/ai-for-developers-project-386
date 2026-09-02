@@ -14,10 +14,11 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    APP_PORT=8001
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx gettext-base \
+    && apt-get install -y --no-install-recommends bash nginx gettext-base tini \
     && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default
 
@@ -36,4 +37,5 @@ RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
 
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/entrypoint.sh"]

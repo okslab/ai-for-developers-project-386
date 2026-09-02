@@ -18,8 +18,8 @@ python -m venv .venv
 ```
 
 - API: http://localhost:8000
-- Docs (Swagger UI): http://localhost:8000/docs
-- OpenAPI: http://localhost:8000/openapi.json
+- Docs (Swagger UI): http://localhost:8000/api/docs
+- OpenAPI: http://localhost:8000/api/openapi.json
 
 Point the frontend at the backend by setting
 `VITE_API_BASE_URL=http://localhost:8000` in `frontend/.env`.
@@ -28,18 +28,18 @@ Point the frontend at the backend by setting
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/owner/event-types` | Create event type → `201` |
-| GET | `/owner/event-types` | List event types (admin) |
-| GET | `/owner/bookings` | Upcoming meetings (`endsAt >= from`, optional `from`) |
-| GET | `/event-types` | Booking-kinds page |
-| GET | `/event-types/{id}` | Single event type; `404` if missing |
-| GET | `/event-types/{id}/slots` | Free slots in 14-day window (`from`/`to` clamped) |
-| POST | `/bookings` | Create booking; `201`/`404`/`409`/`422` |
+| POST | `/api/owner/event-types` | Create event type → `201` |
+| GET | `/api/owner/event-types` | List event types (admin) |
+| GET | `/api/owner/bookings` | Upcoming meetings (`endsAt >= from`, optional `from`) |
+| GET | `/api/event-types` | Booking-kinds page |
+| GET | `/api/event-types/{id}` | Single event type; `404` if missing |
+| GET | `/api/event-types/{id}/slots` | Free slots in 14-day window (`from`/`to` clamped) |
+| POST | `/api/bookings` | Create booking; `201`/`404`/`409`/`422` |
 
 ## Business rules
 
 - **Occupancy rule:** no two bookings may overlap in time, even across event types;
   enforced server-side at creation (`409` on overlap) and reflected in slot listings.
 - **Booking window:** slots generated on a 30-minute grid for 14 calendar days from
-  server "now" (UTC); `POST /bookings` rejects start times outside the window (`422`).
+  server "now" (UTC); `POST /api/bookings` rejects start times outside the window (`422`).
 - **Duration** always comes from the event type; `endsAt` is derived server-side.

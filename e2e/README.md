@@ -39,6 +39,9 @@ npm test -- --grep "guest"  # run only the guest scenarios
 - Backend API: `http://127.0.0.1:8000` (override with `E2E_API_URL` /
   `E2E_API_PORT`).
 - Frontend: `http://127.0.0.1:5173` (override with `E2E_WEB_PORT`).
+- Set `E2E_EXTERNAL_BASE_URL` to test an already running combined deployment
+  such as the production Docker container; Playwright then does not start its
+  own Vite or Uvicorn processes.
 - The frontend is pointed at the backend via `VITE_API_BASE_URL`, set by the
   Playwright `webServer` entry, so no `.env` is needed.
 

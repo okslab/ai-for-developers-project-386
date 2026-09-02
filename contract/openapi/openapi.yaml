@@ -7,7 +7,7 @@ tags:
   - name: Guest
   - name: Owner
 paths:
-  /bookings:
+  /api/bookings:
     post:
       operationId: Bookings_create
       parameters: []
@@ -34,7 +34,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BookingCreate'
-  /event-types:
+  /api/event-types:
     get:
       operationId: EventTypes_list
       description: List all bookable event types shown on the guest booking-kinds page.
@@ -50,7 +50,7 @@ paths:
                   $ref: '#/components/schemas/EventType'
       tags:
         - Guest
-  /event-types/{eventTypeId}:
+  /api/event-types/{eventTypeId}:
     get:
       operationId: EventTypes_get
       description: Get a single event type by id.
@@ -75,7 +75,7 @@ paths:
                 $ref: '#/components/schemas/NotFoundError'
       tags:
         - Guest
-  /event-types/{eventTypeId}/slots:
+  /api/event-types/{eventTypeId}/slots:
     get:
       operationId: Guest_listSlots
       description: List free slots for an event type within the 14-day booking window (from/to optional, clamped to the window).
@@ -116,7 +116,7 @@ paths:
                 $ref: '#/components/schemas/NotFoundError'
       tags:
         - Guest
-  /owner/bookings:
+  /api/owner/bookings:
     get:
       operationId: Owner_listUpcoming
       description: List upcoming meetings across all event types (only bookings with endsAt >= now), enriched with event type name and description.
@@ -139,7 +139,7 @@ paths:
                   $ref: '#/components/schemas/BookingWithEventType'
       tags:
         - Owner
-  /owner/event-types:
+  /api/owner/event-types:
     post:
       operationId: OwnerEventTypes_create
       description: Create a new event type.
