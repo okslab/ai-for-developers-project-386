@@ -20,7 +20,7 @@ TypeSpec. The contract is the single source of truth for both parts.
 
 ## Stack
 
-- **Contract:** TypeSpec 1.x (Node ≥ 20). Build with `cd contract && npm install && npm run build`
+- **Contract:** TypeSpec 1.x (Node ≥ 24.18). Build with `cd contract && npm ci && npm run build`
   (regenerates `openapi/openapi.yaml`); `npm run check` treats warnings as errors.
 - **Backend:** Python 3.12+, FastAPI (in-memory store; see `backend/README.md`).
 - **Frontend:** React (Vite), TypeScript; client types generated from the OpenAPI spec.
@@ -48,7 +48,7 @@ TypeSpec. The contract is the single source of truth for both parts.
 - User-scenario tests live in [`e2e/`](./e2e/) (Playwright) and cover the core booking
   journey in a real browser: owner creates an event type, guest books a slot, owner sees
   the upcoming meeting. Scenarios are in [`e2e/SCENARIOS.md`](./e2e/SCENARIOS.md).
-- Run locally with `cd e2e && npm install && npx playwright install chromium && npm test`
+- Run locally with `cd e2e && npm ci && npx playwright install chromium && npm test`
   (needs backend deps installed — see `backend/README.md`; point the backend interpreter
   at it with `E2E_PYTHON` if not `python3`).
 - `.github/workflows/e2e.yml` runs them on every push/PR against a freshly started
