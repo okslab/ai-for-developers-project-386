@@ -232,3 +232,44 @@ test("S5: overlapping slots from different event types conflict (409)", async ({
     await secondPage.close();
   }
 });
+
+test("S6: available day groups are displayed chronologically", async ({ page }) => {
+  await createEventType(page, "Calendar review", "A calendar ordering check.", 30);
+  const slots = await openEventTypeAndReadSlots(page, "Calendar review");
+
+  expect(slots.length, "expected available slots from the API").toBeGreaterThan(0);
+  const earliestApiSlot = slots.reduce((earliest, slot) =>
+    Date.parse(slot.startsAt) < Date.parse(earliest.startsAt) ? slot : earliest,
+  );
+
+  const dayGroups = page.locator("[data-day-start]");
+  const expectedDayCount = await page.evaluate(
+    (startsAtValues) =>
+      new Set(startsAtValues.map((startsAt) => new Date(startsAt).toDateString())).size,
+    slots.map((slot) => slot.startsAt),
+  );
+  await expect(dayGroups).toHaveCount(expectedDayCount);
+
+  const dayStarts = await dayGroups.evaluateAll((groups) =>
+    groups.map((group) => (group as HTMLElement).dataset.dayStart ?? ""),
+  );
+  expect(dayStarts.length).toBeGreaterThan(1);
+  expect(dayStarts.every((dayStart) => dayStart.length > 0)).toBeTruthy();
+  for (let index = 1; index < dayStarts.length; index += 1) {
+    expect(Date.parse(dayStarts[index])).toBeGreaterThan(Date.parse(dayStarts[index - 1]));
+  }
+
+  expect(Date.parse(dayStarts[0])).toBe(Date.parse(earliestApiSlot.startsAt));
+  const [firstGroupLocalDay, earliestSlotLocalDay] = await page.evaluate(
+    ([firstGroupStart, earliestSlotStart]) =>
+      [firstGroupStart, earliestSlotStart].map((value) => {
+        const date = new Date(value);
+        return [date.getFullYear(), date.getMonth(), date.getDate()];
+      }),
+    [dayStarts[0], earliestApiSlot.startsAt],
+  );
+  expect(firstGroupLocalDay).toEqual(earliestSlotLocalDay);
+
+  await dayGroups.first().getByRole("button", { name: /–/ }).first().click();
+  await expect(page.getByRole("heading", { name: "Enter your details" })).toBeVisible();
+});

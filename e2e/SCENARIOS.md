@@ -79,6 +79,20 @@ Steps:
 Result: the owner's occupancy is global across event types and is enforced both
 when creating a booking and when listing free slots.
 
+## Scenario S6 — Available days are displayed chronologically (FR-4)
+
+Steps:
+
+1. The owner creates an event type.
+2. A guest opens the event type while the browser captures its slots API response.
+3. The displayed day groups are checked to be in strictly increasing chronological
+   order in the browser's local timezone.
+4. The first group is checked against the local calendar day of the earliest API slot.
+5. The guest selects a slot in that first group and the booking form opens.
+
+Result: the calendar starts with the earliest available local day and never orders
+groups by localized weekday or date labels.
+
 ## Mapping to functional requirements
 
 | Scenario | FR covered | API endpoints exercised via the UI |
@@ -88,6 +102,7 @@ when creating a booking and when listing free slots.
 | S3 | FR-2 | `GET /api/owner/bookings` |
 | S4 | FR-6 | `POST /api/bookings` → `409` |
 | S5 | FR-6 | `GET /api/event-types/{id}/slots`, `POST /api/bookings` → `201`, `409` |
+| S6 | FR-4 | `GET /api/event-types`, `GET /api/event-types/{id}`, `GET /api/event-types/{id}/slots` |
 
 ## Running locally
 
