@@ -15,6 +15,8 @@ import { ConfirmationView } from "./ConfirmationView";
 interface DayGroup {
   key: string;
   label: string;
+  dayStart: string;
+  sortTime: number;
   slots: Slot[];
 }
 
@@ -27,12 +29,20 @@ function groupSlotsByDay(slots: Slot[]): DayGroup[] {
     groups.set(key, bucket);
   }
   return [...groups.entries()]
-    .map(([key, bucket]) => ({
-      key,
-      label: formatSlotDate(bucket[0].startsAt),
-      slots: [...bucket].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
-    }))
-    .sort((a, b) => a.key.localeCompare(b.key));
+    .map(([key, bucket]) => {
+      const sortedSlots = [...bucket].sort(
+        (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
+      );
+      const dayStart = sortedSlots[0].startsAt;
+      return {
+        key,
+        label: formatSlotDate(dayStart),
+        dayStart,
+        sortTime: Date.parse(dayStart),
+        slots: sortedSlots,
+      };
+    })
+    .sort((a, b) => a.sortTime - b.sortTime);
 }
 
 export function SlotsCalendarPage() {
@@ -135,7 +145,7 @@ export function SlotsCalendarPage() {
       {!slotsQuery.loading && !slotError && dayGroups.length > 0 && (
         <div className="space-y-8">
           {dayGroups.map((group) => (
-            <div key={group.key} className="space-y-3">
+            <div key={group.key} data-day-start={group.dayStart} className="space-y-3">
               <div className="flex items-center gap-2 font-medium">
                 <CalendarDays className="size-4 text-muted-foreground" />
                 {group.label}
