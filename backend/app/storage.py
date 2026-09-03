@@ -60,12 +60,12 @@ class Store:
         with self._lock:
             slots: list[Slot] = []
             step = timedelta(minutes=GRID_STEP_MINUTES)
-            start = from_dt
-            # Align the first grid step to the fixed 30-minute boundaries.
-            start = datetime.fromtimestamp(
-                int(start.timestamp()) // (GRID_STEP_MINUTES * 60) * GRID_STEP_MINUTES * 60,
-                tz=timezone.utc,
-            )
+            epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+            from_utc = from_dt.astimezone(timezone.utc)
+            completed_steps, remainder = divmod(from_utc - epoch, step)
+            start = epoch + completed_steps * step
+            if remainder:
+                start += step
             duration = timedelta(minutes=event_type.durationMinutes)
             t = start
             while t + duration <= to_dt:

@@ -20,11 +20,10 @@ async function createEventType(
   await expect(page.getByText(name, { exact: true })).toBeVisible();
 }
 
-// Picks a free slot by its index in the rendered grid. Index 0 is skipped
-// because the backend aligns the grid to 30-minute boundaries and the first
-// slot may already be in the past (which would make booking return 422).
-// Using distinct indexes per test also avoids cross-event-type occupancy
-// conflicts, since the tests share one backend instance.
+// Picks a free slot by its index in the rendered grid. The backend rounds the
+// availability start up to the next grid boundary, so index 0 is bookable.
+// Distinct indexes can still be used to keep sequential scenarios independent,
+// since the tests share one backend instance.
 async function selectSlot(
   page: Page,
   eventTypeName: string,
@@ -107,7 +106,7 @@ test("S1: owner creates an event type and it appears in the list", async ({ page
 
 test("S2: guest books a free slot and sees a confirmation", async ({ page }) => {
   await createEventType(page, "Intro call", "A 30-minute intro call.", 30);
-  await bookSlot(page, "Intro call", "Jane Doe", "jane@example.com", 2);
+  await bookSlot(page, "Intro call", "Jane Doe", "jane@example.com", 0);
 
   await expect(page.getByRole("heading", { name: "You're booked!" })).toBeVisible();
   await expect(page.getByText("Jane Doe", { exact: true })).toBeVisible();
