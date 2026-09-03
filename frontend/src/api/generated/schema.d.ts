@@ -71,6 +71,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Report service health and the source revision running in this deployment. */
+        get: operations["System_getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/owner/bookings": {
         parameters: {
             query?: never;
@@ -215,6 +232,16 @@ export interface components {
              * @description Duration of a meeting of this type, in minutes (positive value).
              */
             durationMinutes: number;
+        };
+        /** @description Service health and source revision for deployment verification. */
+        HealthResponse: {
+            /**
+             * @description Service health status.
+             * @enum {string}
+             */
+            status: "ok";
+            /** @description Git commit SHA baked into the running image, or 'unknown' for local builds without an injected revision. */
+            revision: string;
         };
         /** @description Returned when the referenced resource (e.g. an event type) does not exist. */
         NotFoundError: {
@@ -401,6 +428,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationError"];
+                };
+            };
+        };
+    };
+    System_getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
                 };
             };
         };

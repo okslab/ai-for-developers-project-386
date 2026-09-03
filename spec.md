@@ -137,6 +137,13 @@ Enforced server-side (see [Occupancy rule](#occupancy-rule)).
 Free slots are formed for 14 calendar days starting from the current date
 (see [Booking window (default)](#booking-window-default)).
 
+### FR-8 — Deployment health
+
+The service exposes a read-only health response with `status=ok` and the Git revision of
+the running image. Local builds without an injected revision report `unknown`.
+
+API: `GET /api/health`.
+
 ## API Contract Coverage
 
 | Requirement | Endpoint |
@@ -148,6 +155,7 @@ Free slots are formed for 14 calendar days starting from the current date
 | FR-5 — Guest: create a booking for a selected slot | `POST /api/bookings` → `201`; errors `404`, `409`, `422` |
 | FR-6 — Occupancy rule (no overlaps across event types) | `POST /api/bookings` → `409` on overlap; slot listing excludes busy times |
 | FR-7 — Booking window (14 days from current date) | `GET /api/event-types/{eventTypeId}/slots` window; `POST /api/bookings` validates `startsAt` inside the window |
+| FR-8 — Deployment health and source revision | `GET /api/health` |
 | No registration / no authentication | No auth headers, tokens or fields anywhere in the contract |
 
 Coverage: **all owner and guest scenarios map to endpoints; see table above.**

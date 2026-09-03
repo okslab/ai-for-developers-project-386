@@ -12,10 +12,13 @@ RUN VITE_API_BASE_URL=/ npm run build
 # Stage 2: runtime — nginx serves the SPA and proxies API paths to uvicorn
 FROM python:3.12.11-slim AS runtime
 
+ARG RAILWAY_GIT_COMMIT_SHA=unknown
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
-    APP_PORT=8001
+    APP_PORT=8001 \
+    APP_REVISION=${RAILWAY_GIT_COMMIT_SHA}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends bash nginx gettext-base tini \

@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
@@ -82,6 +83,23 @@ class ApiTestCase(unittest.TestCase):
                 "message": "Event type missing not found",
             },
         )
+
+    def test_health_reports_injected_revision(self):
+        with patch.dict(os.environ, {"APP_REVISION": "test-revision"}):
+            response = self.client.get("/api/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"status": "ok", "revision": "test-revision"},
+        )
+
+    def test_health_uses_unknown_when_revision_is_absent(self):
+        with patch.dict(os.environ, {}, clear=True):
+            response = self.client.get("/api/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok", "revision": "unknown"})
 
     def test_slots_round_up_and_honor_contracted_from_filter(self):
         event_type = self.create_event_type()
@@ -243,6 +261,15 @@ class ApiTestCase(unittest.TestCase):
 
     def test_fastapi_openapi_exposes_contracted_parameters_and_errors(self):
         document = self.client.get("/api/openapi.json").json()
+        health_operation = document["paths"]["/api/health"]["get"]
+        health_response = health_operation["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]
+        self.assertEqual(
+            health_response,
+            {"$ref": "#/components/schemas/HealthResponse"},
+        )
+
         slots_operation = document["paths"][
             "/api/event-types/{event_type_id}/slots"
         ]["get"]

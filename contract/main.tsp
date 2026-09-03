@@ -4,6 +4,7 @@ import "@typespec/openapi";
 import "./models.tsp";
 import "./guest.tsp";
 import "./owner.tsp";
+import "./system.tsp";
 
 using TypeSpec.Http;
 using TypeSpec.OpenAPI;

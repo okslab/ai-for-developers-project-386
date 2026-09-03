@@ -1,36 +1,9 @@
-name: deploy
+name: verify-release-deployment
 
 on:
   release:
     types: [published]
 
-permissions:
-  contents: read
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out released tag
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.release.tag_name }}
-
-      - name: Install Railway CLI
-        run: |
-          curl -fsSL railway.com/install.sh | bash
-          echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
-
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up --ci -y \
-            -p fa404c29-911e-4639-aa8f-449979c7f91b \
-            -s 9a7e23eb-ccdb-45bf-9e49-1367eb655e0b \
-            -e production
-
-      - name: Verify deployment
-        run: |
-          curl -fsS --retry 5 --retry-delay 10 \
-            https://ai-for-developers-project-386-production-483e.up.railway.app/api/openapi.json -o /dev/null
+  verify-release:
+    uses: ./.github/workflows/public-production-smoke.yml

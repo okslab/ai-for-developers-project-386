@@ -4,6 +4,15 @@ using TypeSpec.Http;
 
 namespace AppointmentBooking;
 
+@doc("Service health and source revision for deployment verification.")
+model HealthResponse {
+  @doc("Service health status.")
+  status: "ok";
+
+  @doc("Git commit SHA baked into the running image, or 'unknown' for local builds without an injected revision.")
+  revision: string;
+}
+
 @doc("A bookable event type configured by the calendar owner.")
 model EventType {
   @doc("Unique event type identifier (UUID).")
