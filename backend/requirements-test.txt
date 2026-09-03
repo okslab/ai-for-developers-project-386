@@ -1,0 +1,8 @@
+-r requirements.txt
+
+# Direct test dependencies.
+httpx2==2.0.0
+
+# Transitive test dependencies, locked from the tested Python 3.12 environment.
+certifi==2025.8.3
+httpcore2==2.0.0

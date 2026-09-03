@@ -24,6 +24,15 @@ python3.12 -m venv .venv
 Point the frontend at the backend by setting
 `VITE_API_BASE_URL=http://localhost:8000` in `frontend/.env`.
 
+## Test
+
+The backend API suite uses a fresh in-memory store for every test:
+
+```bash
+.venv/bin/pip install -r requirements-test.txt
+.venv/bin/python -m unittest discover -s tests -v
+```
+
 ## Endpoints
 
 | Method | Path | Notes |
