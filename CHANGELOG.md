@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/okslab/ai-for-developers-project-386/compare/v2.0.0...v2.0.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* **calendar:** sort available days chronologically ([#19](https://github.com/okslab/ai-for-developers-project-386/issues/19)) ([ba22995](https://github.com/okslab/ai-for-developers-project-386/commit/ba229950fc2392c5e91c0d07cb4f55edae34e91a))
+
 ## [2.0.0](https://github.com/okslab/ai-for-developers-project-386/compare/v1.0.0...v2.0.0) (2026-09-03)
 
 
