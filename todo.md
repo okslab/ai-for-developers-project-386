@@ -183,7 +183,7 @@
 
 - [x] TypeSpec check/build.
 - [x] Проверка воспроизводимой генерации OpenAPI и frontend types.
-- [ ] Backend API tests.
+- [x] Backend API tests: 8 изолированных HTTP-тестов, отдельный workflow `backend`.
 - [x] Frontend build.
 - [x] Dev Playwright.
 - [x] Cross-event-type Playwright.
