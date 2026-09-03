@@ -20,6 +20,11 @@ python3.12 -m venv .venv
 - API: http://localhost:8000
 - Docs (Swagger UI): http://localhost:8000/api/docs
 - OpenAPI: http://localhost:8000/api/openapi.json
+- Health: http://localhost:8000/api/health
+
+`GET /api/health` reads the source revision from `APP_REVISION`. When the variable is
+unset or empty, the endpoint reports `unknown`, which keeps local development working
+without deployment metadata.
 
 Point the frontend at the backend by setting
 `VITE_API_BASE_URL=http://localhost:8000` in `frontend/.env`.
@@ -37,6 +42,7 @@ The backend API suite uses a fresh in-memory store for every test:
 
 | Method | Path | Notes |
 |---|---|---|
+| GET | `/api/health` | Health status and deployed Git revision |
 | POST | `/api/owner/event-types` | Create event type → `201` |
 | GET | `/api/owner/event-types` | List event types (admin) |
 | GET | `/api/owner/bookings` | Upcoming meetings (`endsAt >= from`, optional `from`) |

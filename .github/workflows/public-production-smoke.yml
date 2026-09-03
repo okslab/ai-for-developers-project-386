@@ -1,0 +1,102 @@
+name: public-production-smoke
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Public deployment base URL (defaults to PRODUCTION_BASE_URL)
+        required: false
+        type: string
+      expected_revision:
+        description: Exact Git revision to expect (empty skips revision polling)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-production-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-public-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEFAULT_BASE_URL: https://ai-for-developers-project-386-production-483e.up.railway.app
+      CONFIGURED_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+      INPUT_BASE_URL: ${{ inputs.base_url }}
+      INPUT_EXPECTED_REVISION: ${{ inputs.expected_revision }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+
+      - name: Resolve smoke target
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_OR_SCHEDULE_REVISION: ${{ github.sha }}
+        run: |
+          base_url="${INPUT_BASE_URL:-${CONFIGURED_BASE_URL:-${DEFAULT_BASE_URL}}}"
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            expected_revision="${INPUT_EXPECTED_REVISION}"
+          else
+            expected_revision="${PUSH_OR_SCHEDULE_REVISION}"
+          fi
+
+          if [[ ! "${base_url}" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "::error::base_url must be a single HTTP(S) URL"
+            exit 1
+          fi
+          if [[ -n "${expected_revision}" && ! "${expected_revision}" =~ ^[0-9a-fA-F]{40,64}$ ]]; then
+            echo "::error::expected_revision must be a full Git SHA"
+            exit 1
+          fi
+
+          echo "base_url=${base_url%/}" >> "${GITHUB_OUTPUT}"
+          echo "expected_revision=${expected_revision}" >> "${GITHUB_OUTPUT}"
+
+      - name: Run availability-only smoke
+        if: steps.target.outputs.expected_revision == ''
+        run: node e2e/scripts/public-production-smoke.mjs "${{ steps.target.outputs.base_url }}"
+
+      - name: Wait for and verify expected deployment
+        if: steps.target.outputs.expected_revision != ''
+        env:
+          BASE_URL: ${{ steps.target.outputs.base_url }}
+          EXPECTED_REVISION: ${{ steps.target.outputs.expected_revision }}
+        run: |
+          last_response="${RUNNER_TEMP}/last-health-response.json"
+          for attempt in $(seq 1 30); do
+            http_status=$(curl --silent --show-error --max-time 5 \
+              --output "${last_response}" --write-out '%{http_code}' \
+              "${BASE_URL}/api/health" || true)
+            current_revision=$(jq --raw-output '.revision // empty' "${last_response}" 2>/dev/null || true)
+
+            echo "Attempt ${attempt}/30: HTTP ${http_status}, revision ${current_revision:-unavailable}"
+            if [[ "${http_status}" == "200" && "${current_revision}" == "${EXPECTED_REVISION}" ]]; then
+              node e2e/scripts/public-production-smoke.mjs \
+                "${BASE_URL}" "${EXPECTED_REVISION}"
+              exit 0
+            fi
+
+            if [[ "${attempt}" -lt 30 ]]; then
+              sleep 10
+            fi
+          done
+
+          echo "::error::Timed out waiting for revision ${EXPECTED_REVISION}"
+          echo "Last /api/health response (HTTP ${http_status}):"
+          head --bytes 2000 "${last_response}" 2>/dev/null || true
+          exit 1

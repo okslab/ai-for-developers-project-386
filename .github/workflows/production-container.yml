@@ -20,7 +20,10 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
 
       - name: Build production image
-        run: docker build --tag appointment-booking:ci .
+        run: |
+          docker build \
+            --build-arg RAILWAY_GIT_COMMIT_SHA=${{ github.sha }} \
+            --tag appointment-booking:ci .
 
       - name: Start production container on PORT=8080
         run: |
@@ -33,7 +36,7 @@ jobs:
       - name: Wait for API readiness
         run: |
           for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:8080/api/openapi.json > /dev/null; then
+            if curl --fail --silent http://127.0.0.1:8080/api/health > /dev/null; then
               exit 0
             fi
             sleep 1
@@ -43,6 +46,15 @@ jobs:
 
       - name: Run production smoke checks
         run: node e2e/scripts/production-smoke.mjs http://127.0.0.1:8080
+
+      - name: Test read-only public smoke
+        run: node --test e2e/scripts/public-production-smoke.test.mjs
+
+      - name: Verify production image revision and public routing
+        run: |
+          node e2e/scripts/public-production-smoke.mjs \
+            http://127.0.0.1:8080 \
+            ${{ github.sha }}
 
       - name: Install e2e dependencies
         working-directory: e2e

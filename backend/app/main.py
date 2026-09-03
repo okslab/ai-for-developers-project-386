@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .routers import guest, owner
+from .routers import guest, health, owner
 
 API_PREFIX = "/api"
 
@@ -67,3 +67,4 @@ async def request_validation_exception_handler(
 
 app.include_router(guest.router, prefix=API_PREFIX)
 app.include_router(owner.router, prefix=API_PREFIX)
+app.include_router(health.router, prefix=API_PREFIX)

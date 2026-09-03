@@ -48,3 +48,20 @@ npm test -- --grep "guest"  # run only the guest scenarios
 
 In CI the frontend and backend are started by Playwright inside the same job
 (see `.github/workflows/e2e.yml`).
+
+## Read-only production smoke
+
+`scripts/public-production-smoke.mjs` checks a combined public deployment without
+changing its in-memory state:
+
+```bash
+node scripts/public-production-smoke.mjs <base-url> [expected-revision]
+```
+
+When `expected-revision` is present, it must exactly match the `revision` returned by
+`GET /api/health`. The script also verifies JSON API routes and the HTML SPA fallback.
+Its focused regression tests use Node's built-in test runner:
+
+```bash
+node --test scripts/public-production-smoke.test.mjs
+```
