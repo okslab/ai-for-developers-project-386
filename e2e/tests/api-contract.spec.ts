@@ -10,6 +10,8 @@ interface SlotResponse {
 
 interface BookingResponse {
   id: string;
+  startsAt: string;
+  endsAt: string;
 }
 
 interface ErrorResponse {
@@ -136,6 +138,128 @@ test("slot availability starts at or after the requested grid boundary", async (
   const exactBoundarySlots = (await exactBoundaryResponse.json()) as SlotResponse[];
   expect(exactBoundarySlots.length).toBeGreaterThan(0);
   expect(Date.parse(exactBoundarySlots[0].startsAt)).toBe(roundedBoundary.getTime());
+});
+
+test("booking creation enforces the UTC slot grid and complete booking window", async ({
+  request,
+}) => {
+  const createEventTypeResponse = await request.post(`${apiBaseUrl}/api/owner/event-types`, {
+    data: {
+      name: "Booking grid regression",
+      description: "Verifies direct booking validation at the API boundary.",
+      durationMinutes: 30,
+    },
+  });
+  expect(createEventTypeResponse.status()).toBe(201);
+  const eventType = (await createEventTypeResponse.json()) as EventTypeResponse;
+
+  const slotsResponse = await request.get(
+    `${apiBaseUrl}/api/event-types/${eventType.id}/slots`,
+  );
+  expect(slotsResponse.ok()).toBeTruthy();
+  const slots = (await slotsResponse.json()) as SlotResponse[];
+  const safelyFuture = Date.now() + 60_000;
+  const adjacentSlotIndex = slots.findIndex(
+    (slot, index) =>
+      index > 0 &&
+      Date.parse(slots[index - 1].startsAt) > safelyFuture &&
+      Date.parse(slot.startsAt) - Date.parse(slots[index - 1].startsAt) === 30 * 60_000,
+  );
+  expect(adjacentSlotIndex, "expected two adjacent slots safely in the future").toBeGreaterThan(0);
+  if (adjacentSlotIndex <= 0) return;
+
+  const firstStart = new Date(slots[adjacentSlotIndex - 1].startsAt);
+  const secondStart = new Date(slots[adjacentSlotIndex].startsAt);
+  expect([0, 30]).toContain(firstStart.getUTCMinutes());
+  expect([0, 30]).toContain(secondStart.getUTCMinutes());
+
+  const offsetStart = new Date(firstStart.getTime() + 3 * 60 * 60_000)
+    .toISOString()
+    .replace("Z", "+03:00");
+  const firstBookingResponse = await request.post(`${apiBaseUrl}/api/bookings`, {
+    data: {
+      eventTypeId: eventType.id,
+      startsAt: offsetStart,
+      guestName: "UTC Offset Guest",
+      guestEmail: "offset@example.com",
+    },
+  });
+  expect(firstBookingResponse.status()).toBe(201);
+  const firstBooking = (await firstBookingResponse.json()) as BookingResponse;
+  expect(Date.parse(firstBooking.startsAt)).toBe(firstStart.getTime());
+  expect(firstBooking.startsAt).toMatch(/Z$/);
+
+  const secondBookingResponse = await request.post(`${apiBaseUrl}/api/bookings`, {
+    data: {
+      eventTypeId: eventType.id,
+      startsAt: secondStart.toISOString(),
+      guestName: "Adjacent Grid Guest",
+      guestEmail: "adjacent@example.com",
+    },
+  });
+  expect(secondBookingResponse.status()).toBe(201);
+
+  const offGridStarts = [
+    new Date(firstStart.getTime() + 7 * 60_000),
+    new Date(firstStart.getTime() + 12_000),
+    new Date(firstStart.getTime() + 100),
+  ];
+  for (const startsAt of offGridStarts) {
+    const response = await request.post(`${apiBaseUrl}/api/bookings`, {
+      data: {
+        eventTypeId: eventType.id,
+        startsAt: startsAt.toISOString(),
+        guestName: "Off-grid Guest",
+        guestEmail: "off-grid@example.com",
+      },
+    });
+    expect(response.status()).toBe(422);
+    const error = (await response.json()) as ErrorResponse;
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).toContain("30-minute UTC grid");
+  }
+
+  const conflictResponse = await request.post(`${apiBaseUrl}/api/bookings`, {
+    data: {
+      eventTypeId: eventType.id,
+      startsAt: firstStart.toISOString(),
+      guestName: "Conflict Guest",
+      guestEmail: "conflict@example.com",
+    },
+  });
+  expect(conflictResponse.status()).toBe(409);
+  const conflict = (await conflictResponse.json()) as ErrorResponse;
+  expect(conflict.code).toBe("CONFLICT");
+
+  const createLongEventTypeResponse = await request.post(
+    `${apiBaseUrl}/api/owner/event-types`,
+    {
+      data: {
+        name: "Window boundary regression",
+        description: "Ensures the complete interval remains inside the booking window.",
+        durationMinutes: 60,
+      },
+    },
+  );
+  expect(createLongEventTypeResponse.status()).toBe(201);
+  const longEventType = (await createLongEventTypeResponse.json()) as EventTypeResponse;
+  const gridStepMs = 30 * 60_000;
+  const lastStartInsideWindow = new Date(
+    Math.floor((Date.now() + 14 * 24 * 60 * 60_000) / gridStepMs) * gridStepMs,
+  );
+
+  const outsideWindowResponse = await request.post(`${apiBaseUrl}/api/bookings`, {
+    data: {
+      eventTypeId: longEventType.id,
+      startsAt: lastStartInsideWindow.toISOString(),
+      guestName: "Window Guest",
+      guestEmail: "window@example.com",
+    },
+  });
+  expect(outsideWindowResponse.status()).toBe(422);
+  const outsideWindowError = (await outsideWindowResponse.json()) as ErrorResponse;
+  expect(outsideWindowError.code).toBe("OUTSIDE_WINDOW");
+  expect(outsideWindowError.message).toContain("complete booking interval");
 });
 
 test("FastAPI OpenAPI publishes from instead of from_", async ({ request }) => {

@@ -75,8 +75,18 @@ def create_booking(body: BookingCreate, store: Store = Depends(get_store)):
     result = store.create_booking(body)
     if result is None:
         _error(404, "NOT_FOUND", f"Event type {body.eventTypeId} not found")
+    if result == "OFF_GRID":
+        _error(
+            422,
+            "VALIDATION_ERROR",
+            "Slot start time must align to a 30-minute UTC grid boundary",
+        )
     if result == "OUTSIDE_WINDOW":
-        _error(422, "OUTSIDE_WINDOW", "Slot start time is outside the 14-day booking window")
+        _error(
+            422,
+            "OUTSIDE_WINDOW",
+            "The complete booking interval must fit inside the 14-day booking window",
+        )
     if result == "CONFLICT":
         _error(409, "CONFLICT", "Selected slot is already booked")
     return result
