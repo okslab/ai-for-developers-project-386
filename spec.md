@@ -42,7 +42,7 @@ The guest can:
 
 - Available slots are generated for a window of **14 calendar days** starting with the
   current date (server time).
-- A guest may only book a free slot that falls inside this window.
+- A guest may only book a free slot whose complete interval falls inside this window.
 - The booking window is computed server-side using the server timezone (default: UTC).
   All timestamps in the API are ISO 8601 in UTC (`utcDateTime`).
 - Every timestamp supplied by a client must include a timezone designator or numeric
@@ -61,6 +61,8 @@ The guest can:
 
 - Candidate slots are generated on a fixed grid of **30-minute** steps inside the booking
   window.
+- Client-supplied start times are normalized to UTC before validation and must land exactly
+  on a grid boundary (`:00` or `:30`, with zero seconds and fractional seconds).
 - A slot of event type `E` starting at `T` is available if `[T, T + duration(E))` does not
   overlap any existing booking.
 - Slot start times are validated by the server; a client cannot create bookings of an

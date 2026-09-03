@@ -81,13 +81,21 @@ class Store:
             event_type = self._event_types.get(payload.eventTypeId)
             if event_type is None:
                 return None  # signal: event type not found (404)
+
             now = utcnow()
-            starts_at = payload.startsAt
-            if starts_at < now or starts_at > now + timedelta(
-                days=DEFAULT_WINDOW_DAYS
+            starts_at = payload.startsAt.astimezone(timezone.utc)
+            if (
+                starts_at.minute % GRID_STEP_MINUTES != 0
+                or starts_at.second != 0
+                or starts_at.microsecond != 0
             ):
-                return "OUTSIDE_WINDOW"
+                return "OFF_GRID"
+
             ends_at = starts_at + timedelta(minutes=event_type.durationMinutes)
+            window_end = now + timedelta(days=DEFAULT_WINDOW_DAYS)
+            if starts_at < now or ends_at > window_end:
+                return "OUTSIDE_WINDOW"
+
             if not self._is_interval_free(starts_at, ends_at):
                 return "CONFLICT"
             booking = Booking(

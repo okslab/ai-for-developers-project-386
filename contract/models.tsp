@@ -74,7 +74,7 @@ model BookingCreate {
   @doc("Identifier of the event type to book.")
   eventTypeId: string;
 
-  @doc("Desired slot start time (ISO 8601, UTC). Must fall inside the 14-day booking window.")
+  @doc("Desired slot start time (ISO 8601 with a timezone). After normalization to UTC, it must align to a 30-minute grid boundary and the complete booking interval must fit inside the 14-day booking window.")
   startsAt: utcDateTime;
 
   @doc("Guest provided name.")

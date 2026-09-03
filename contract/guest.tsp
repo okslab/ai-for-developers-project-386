@@ -29,7 +29,7 @@ op listSlots(
 
 @route("/bookings")
 @tag("Guest")
-@doc("Create a booking for a free slot. 201 on success, 409 on overlap with any event type, 404 if the event type does not exist, 422 for validation errors such as a start time outside the 14-day window.")
+@doc("Create a booking for a free slot. 201 on success, 409 on overlap with any event type, 404 if the event type does not exist, 422 when the UTC-normalized start is off the 30-minute grid or the complete interval falls outside the 14-day window.")
 namespace Bookings {
   @post
   op create(
